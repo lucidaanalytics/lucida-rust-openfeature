@@ -5,6 +5,8 @@ on:
   pull_request:
 permissions:
   contents: read
+env:
+  LUCIDA_TESTDATA: ${{ github.workspace }}/testdata
 jobs:
   test:
     runs-on: ubuntu-latest

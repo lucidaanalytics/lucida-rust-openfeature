@@ -16,10 +16,14 @@ pub fn reason(raw: &str, value: &FlagValue) -> EvaluationReason {
         "condition_match" if matches!(value, FlagValue::Variant(_)) => EvaluationReason::Split,
         "condition_match" => EvaluationReason::TargetingMatch,
         "sticky_bucket" => EvaluationReason::Cached,
-        "no_condition_match" | "out_of_rollout" | "holdout" | "namespace_excluded"
-        | "no_bucketing_key" | "prerequisite_failed" | "prerequisite_missing" | "fallback" => {
-            EvaluationReason::Default
-        }
+        "no_condition_match"
+        | "out_of_rollout"
+        | "holdout"
+        | "namespace_excluded"
+        | "no_bucketing_key"
+        | "prerequisite_failed"
+        | "prerequisite_missing"
+        | "fallback" => EvaluationReason::Default,
         "prerequisite_cycle" => EvaluationReason::Error,
         "inactive" | "kill_switch" | "app_context_excluded" => EvaluationReason::Disabled,
         "preview" | "user_preview" => EvaluationReason::Static,
@@ -54,7 +58,14 @@ pub fn inputs(ctx: &EvaluationContext) -> (Option<String>, FlagOptions) {
             ("groups", Value::Object(m)) => {
                 o.groups = m
                     .into_iter()
-                    .map(|(t, key)| (t, Value::String(key.as_str().map_or_else(|| key.to_string(), str::to_owned))))
+                    .map(|(t, key)| {
+                        (
+                            t,
+                            Value::String(
+                                key.as_str().map_or_else(|| key.to_string(), str::to_owned),
+                            ),
+                        )
+                    })
                     .collect();
             }
             ("groupProperties", Value::Object(m)) => o.group_properties = m,
@@ -85,7 +96,12 @@ fn field_json(v: &EvaluationContextFieldValue) -> Option<Value> {
 }
 
 fn struct_json(s: &StructValue) -> Value {
-    Value::Object(s.fields.iter().map(|(k, v)| (k.clone(), of_json(v))).collect())
+    Value::Object(
+        s.fields
+            .iter()
+            .map(|(k, v)| (k.clone(), of_json(v)))
+            .collect(),
+    )
 }
 
 fn of_json(v: &OfValue) -> Value {
@@ -113,9 +129,10 @@ fn to_of(v: &Value) -> Option<OfValue> {
     Some(match v {
         Value::Null => return None,
         Value::Bool(b) => OfValue::Bool(*b),
-        Value::Number(n) => n
-            .as_i64()
-            .map_or_else(|| OfValue::Float(n.as_f64().unwrap_or_default()), OfValue::Int),
+        Value::Number(n) => n.as_i64().map_or_else(
+            || OfValue::Float(n.as_f64().unwrap_or_default()),
+            OfValue::Int,
+        ),
         Value::String(s) => OfValue::String(s.clone()),
         Value::Array(a) => OfValue::Array(a.iter().filter_map(to_of).collect()),
         Value::Object(m) => OfValue::Struct(to_struct(m)),

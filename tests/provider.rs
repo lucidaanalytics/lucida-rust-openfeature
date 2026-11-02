@@ -71,13 +71,18 @@ fn expected(name: &str) -> EvaluationReason {
 fn reason_table_matches_the_shared_json() {
     let dir = std::env::var("LUCIDA_TESTDATA")
         .unwrap_or_else(|_| format!("{}/../../testdata", env!("CARGO_MANIFEST_DIR")));
-    let raw = std::fs::read_to_string(format!("{dir}/openfeature/reasons.json")).expect("reasons.json");
+    let raw =
+        std::fs::read_to_string(format!("{dir}/openfeature/reasons.json")).expect("reasons.json");
     let table: Value = serde_json::from_str(&raw).expect("json");
     for (k, row) in table["reasons"].as_object().expect("reasons") {
         let plain = row["reason"].as_str().expect("reason");
         let variant = row["variant_reason"].as_str().unwrap_or(plain);
         assert_eq!(reason(k, &FlagValue::Bool(true)), expected(plain), "{k}");
-        assert_eq!(reason(k, &FlagValue::Variant("v".into())), expected(variant), "{k}");
+        assert_eq!(
+            reason(k, &FlagValue::Variant("v".into())),
+            expected(variant),
+            "{k}"
+        );
     }
 }
 
@@ -95,7 +100,10 @@ async fn served_flag_carries_reason_and_metadata() {
 #[tokio::test]
 async fn fallback_keeps_the_value_without_error_and_emits_no_exposure() {
     let (p, seen) = provider().await;
-    let r = p.resolve_bool_value("ghost", &ctx()).await.expect("fallback");
+    let r = p
+        .resolve_bool_value("ghost", &ctx())
+        .await
+        .expect("fallback");
     assert!(r.value);
     assert_eq!(r.reason, Some(EvaluationReason::Default));
     assert!(seen.lock().expect("lock").is_empty());
@@ -104,9 +112,15 @@ async fn fallback_keeps_the_value_without_error_and_emits_no_exposure() {
 #[tokio::test]
 async fn errors() {
     let (p, _) = provider().await;
-    let e = p.resolve_bool_value("nope", &ctx()).await.expect_err("missing");
+    let e = p
+        .resolve_bool_value("nope", &ctx())
+        .await
+        .expect_err("missing");
     assert_eq!(e.code, EvaluationErrorCode::FlagNotFound);
-    let e = p.resolve_string_value("on", &ctx()).await.expect_err("mismatch");
+    let e = p
+        .resolve_string_value("on", &ctx())
+        .await
+        .expect_err("mismatch");
     assert_eq!(e.code, EvaluationErrorCode::TypeMismatch);
     let e = p
         .resolve_bool_value("on", &EvaluationContext::default())
@@ -118,7 +132,10 @@ async fn errors() {
 #[test]
 fn context_split() {
     let c = ctx()
-        .with_custom_field("groups", EvaluationContextFieldValue::new_struct(json!({"company": "acme"})))
+        .with_custom_field(
+            "groups",
+            EvaluationContextFieldValue::new_struct(json!({"company": "acme"})),
+        )
         .with_custom_field(
             "groupProperties",
             EvaluationContextFieldValue::new_struct(json!({"company": {"seats": 5}})),
@@ -127,7 +144,10 @@ fn context_split() {
     assert_eq!(id.as_deref(), Some("user-1"));
     assert_eq!(o.person_properties.get("plan"), Some(&json!("pro")));
     assert_eq!(o.groups.get("company"), Some(&json!("acme")));
-    assert_eq!(o.group_properties.get("company"), Some(&json!({"seats": 5})));
+    assert_eq!(
+        o.group_properties.get("company"),
+        Some(&json!({"seats": 5}))
+    );
     assert!(o.person_properties.get("groups").is_none());
 }
 
