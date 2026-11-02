@@ -1,0 +1,31 @@
+# Not a member of the root workspace: the empty table below makes this its own workspace root.
+[workspace]
+
+[package]
+name = "lucida-openfeature"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99.0"
+license = "Apache-2.0"
+description = "OpenFeature provider for Lucida (server paradigm)"
+readme = "README.md"
+repository = "https://github.com/lucidaanalytics/lucida-rust-openfeature"
+keywords = ["openfeature", "feature-flags", "lucida"]
+categories = ["api-bindings"]
+
+[lib]
+name = "lucida_openfeature"
+
+[dependencies]
+async-trait = "0.1" # MIT/Apache-2.0
+lucida-analytics = { version = "0.1", path = "../rust", features = ["tokio"] }
+open-feature = "0.2" # Apache-2.0
+serde_json = "1"
+time = { version = "0.3", features = ["formatting"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+unwrap_used = "deny"

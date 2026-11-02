@@ -1,0 +1,22 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Cargo.toml depends on lucida-analytics by version, with path = "../rust" for development:
+      # the base SDK's public source sits beside the checkout so the path resolves.
+      - run: git clone --depth 1 https://github.com/lucidaanalytics/lucida-rust "$GITHUB_WORKSPACE/../rust"
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: "1.99.0"
+          components: rustfmt, clippy
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets --all-features -- -D warnings
+      - run: cargo test --all-features
