@@ -1,4 +1,4 @@
-//! Provider tests over an AsyncClient whose definitions come from a pre-filled cache (no network).
+//! Provider tests over an `AsyncClient` whose definitions come from a pre-filled cache (no network).
 
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
